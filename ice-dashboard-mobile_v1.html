@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ICE Dashboard">
+<meta name="theme-color" content="#032D42">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ICE Intelligence Center — Marco De Leonardis</title>
+<style>
+/* ── SN Brand tokens ─────────────────────────── */
+:root {
+  --blue:    #032D42;
+  --teal:    #044355;
+  --green:   #63DF4E;
+  --sage:    #81B5A1;
+  --surface: #F7F9FB;
+  --white:   #FFFFFF;
+  --border:  #D8DDE6;
+  --text:    #1B2B38;
+  --muted:   #546E7A;
+  --info:    #0176D3;
+  --warn:    #DD7A01;
+  --error:   #C23934;
+  --success: #3BA755;
+  --notion:  #E07B54;
+  --enh:     #5A31F4;
+  --shadow:  0 1px 4px rgba(3,45,66,.1);
+  --shadow-md: 0 2px 12px rgba(3,45,66,.12);
+}
+* { box-sizing:border-box; margin:0; padding:0 }
+body { background:var(--surface); color:var(--text); font-family:'Segoe UI',Calibri,sans-serif; font-size:13px; line-height:1.5 }
+
+/* ── Layout ─────────────────────────────────── */
+#app { display:flex; flex-direction:column; min-height:100vh }
+
+/* ── Header ─────────────────────────────────── */
+.header {
+  background:var(--blue); color:#fff;
+  height:56px; padding:0 24px;
+  display:flex; align-items:center; justify-content:space-between;
+  position:sticky; top:0; z-index:300;
+  box-shadow:0 2px 8px rgba(3,45,66,.3);
+}
+.header-brand { display:flex; align-items:center; gap:12px }
+.header-logo {
+  width:34px; height:34px; border-radius:7px;
+  background:var(--green); color:var(--blue);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:12px; letter-spacing:-.5px; flex-shrink:0;
+}
+.header-title { font-size:14px; font-weight:600 }
+.header-sub   { font-size:11px; color:rgba(255,255,255,.55); margin-top:1px }
+.header-pills { display:flex; gap:8px; align-items:center }
+.pill {
+  display:flex; align-items:center; gap:5px;
+  padding:3px 10px; border-radius:20px;
+  border:1px solid rgba(255,255,255,.2);
+  font-size:10px; color:rgba(255,255,255,.8);
+}
+.pill-dot { width:6px; height:6px; border-radius:50%; background:var(--green) }
+.pulse { animation:pulse 2s ease-in-out infinite }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ── Summary strip ───────────────────────────── */
+.summary-strip {
+  background:var(--blue);
+  border-top:1px solid rgba(255,255,255,.08);
+  padding:8px 24px;
+  display:flex; gap:20px; flex-wrap:wrap;
+}
+.sum-card { text-align:center; min-width:64px }
+.sum-num  { font-size:20px; font-weight:700; line-height:1.1 }
+.sum-lbl  { font-size:9px; color:rgba(255,255,255,.5); text-transform:uppercase; letter-spacing:.07em; margin-top:2px }
+
+/* ── Tabs ────────────────────────────────────── */
+.tabs {
+  background:var(--blue);
+  border-top:1px solid rgba(255,255,255,.08);
+  padding:0 24px; display:flex; gap:2px;
+  position:sticky; top:56px; z-index:200;
+}
+.tab-btn {
+  padding:9px 16px; font-size:12px; font-weight:500;
+  color:rgba(255,255,255,.55); cursor:pointer;
+  background:none; border:none; border-bottom:2px solid transparent;
+  transition:all .15s; font-family:inherit;
+}
+.tab-btn:hover { color:#fff }
+.tab-btn.active { color:var(--green); border-bottom-color:var(--green) }
+.tab-badge {
+  display:inline-block; background:rgba(255,255,255,.12);
+  border-radius:10px; padding:0 6px; font-size:10px;
+  margin-left:4px; font-family:'Courier New',monospace;
+}
+
+/* ── Main ────────────────────────────────────── */
+main { max-width:1440px; margin:0 auto; padding:20px 24px 80px; flex:1 }
+
+/* ── Filter bar ──────────────────────────────── */
+.filter-bar { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; align-items:center }
+.search-input {
+  flex:1; min-width:200px; padding:7px 12px;
+  border:1px solid var(--border); border-radius:4px;
+  font-size:12px; font-family:inherit; background:var(--white);
+}
+.search-input:focus { outline:none; border-color:var(--blue); box-shadow:0 0 0 2px rgba(3,45,66,.1) }
+.fbtn {
+  padding:6px 12px; border:1px solid var(--border); border-radius:4px;
+  font-size:11px; cursor:pointer; background:var(--white);
+  color:var(--muted); transition:all .15s; font-family:inherit;
+}
+.fbtn:hover { border-color:var(--blue); color:var(--blue) }
+.fbtn.active { background:var(--blue); color:#fff; border-color:var(--blue) }
+
+/* ── Task card ───────────────────────────────── */
+.task-card {
+  background:var(--white); border:1px solid var(--border);
+  border-radius:6px; overflow:hidden;
+  box-shadow:var(--shadow); margin-bottom:8px;
+  transition:box-shadow .15s;
+}
+.task-card:hover { box-shadow:var(--shadow-md) }
+.card-header {
+  display:flex; align-items:stretch; cursor:pointer; min-height:48px;
+}
+.card-accent { width:4px; flex-shrink:0 }
+.card-inner {
+  flex:1; padding:9px 14px;
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.card-left  { display:flex; align-items:center; gap:10px; flex:1; min-width:0 }
+.card-num   { font-size:11px; font-weight:600; color:var(--muted); font-family:'Courier New',monospace; white-space:nowrap }
+.card-title { font-size:13px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.card-right { display:flex; align-items:center; gap:5px; flex-shrink:0 }
+.chevron    { font-size:11px; color:var(--muted); transition:transform .15s; margin-left:2px }
+.task-card.open .chevron { transform:rotate(180deg) }
+
+/* ── Badges ─────────────────────────────────── */
+.badge {
+  display:inline-flex; align-items:center;
+  padding:2px 7px; border-radius:3px;
+  font-size:10px; font-weight:600; white-space:nowrap;
+}
+
+/* ── Card body / inner tabs ──────────────────── */
+.card-body    { display:none; border-top:1px solid var(--border) }
+.task-card.open .card-body { display:block }
+.inner-tabs   { display:flex; background:var(--surface); border-bottom:1px solid var(--border) }
+.itab {
+  padding:7px 14px; font-size:11px; font-weight:500;
+  cursor:pointer; background:none; border:none;
+  border-bottom:2px solid transparent; color:var(--muted);
+  transition:all .15s; font-family:inherit;
+}
+.itab:hover { color:var(--teal) }
+.itab.active { color:var(--blue); border-bottom-color:var(--blue); background:var(--white) }
+.ipanel { display:none; padding:14px 16px }
+.ipanel.active { display:block }
+
+/* ── Notion notes ────────────────────────────── */
+.notes-list   { display:flex; flex-direction:column; gap:7px }
+.note-item    { border:1px solid #F0E8E2; border-radius:4px; padding:9px 12px; background:#FFFAF7 }
+.note-item.highlight { border-color:#FECACA; background:#FFF8F8 }
+.note-hdr     { display:flex; align-items:center; gap:7px; margin-bottom:3px }
+.note-dot     { width:8px; height:8px; border-radius:50%; background:var(--notion); flex-shrink:0 }
+.note-dot.red { background:var(--error) }
+.note-dtitle  { font-size:11px; font-weight:600; color:var(--notion) }
+.note-dtitle.red { color:var(--error) }
+.note-link    { font-size:10px; color:var(--muted); text-decoration:none; margin-left:auto }
+.note-link:hover { color:var(--blue) }
+.note-summary { font-size:12px; color:var(--teal); line-height:1.5 }
+.note-date    { font-size:9px; color:var(--muted); margin-left:auto; flex-shrink:0 }
+.no-notes     { font-size:12px; color:var(--muted); font-style:italic }
+
+/* ── Work note editor ────────────────────────── */
+.note-editor   { display:flex; flex-direction:column; gap:8px }
+.note-textarea {
+  width:100%; padding:10px 12px; border:1px solid var(--border);
+  border-radius:4px; font-size:12px; font-family:inherit;
+  resize:vertical; min-height:90px; color:var(--text); line-height:1.6;
+}
+.note-textarea:focus { outline:none; border-color:var(--blue); box-shadow:0 0 0 2px rgba(3,45,66,.1) }
+.note-footer   { display:flex; justify-content:space-between; align-items:center }
+.note-updated  { font-size:10px; color:var(--muted) }
+.btn-row       { display:flex; gap:6px }
+
+/* ── Buttons ─────────────────────────────────── */
+.btn {
+  padding:5px 12px; border-radius:4px; font-size:11px; font-weight:600;
+  cursor:pointer; border:none; font-family:inherit; transition:all .15s; white-space:nowrap;
+}
+.btn-primary { background:var(--blue); color:#fff }
+.btn-primary:hover { background:var(--teal) }
+.btn-ghost   { background:transparent; color:var(--blue); border:1px solid var(--blue) }
+.btn-ghost:hover { background:rgba(3,45,66,.06) }
+.btn-success { background:var(--success); color:#fff }
+.btn-sm      { font-size:10px; padding:4px 10px }
+.qa-row      { display:flex; gap:6px; flex-wrap:wrap; padding:9px 16px; border-top:1px solid var(--border); background:var(--surface) }
+
+/* ── Intel briefing cards ────────────────────── */
+.intel-card {
+  background:var(--white); border:1px solid var(--border);
+  border-radius:6px; overflow:hidden; margin-bottom:10px;
+  box-shadow:var(--shadow);
+}
+.intel-header {
+  display:flex; align-items:center; gap:10px; padding:12px 16px;
+  cursor:pointer; border-bottom:1px solid transparent;
+}
+.intel-card.open .intel-header { border-bottom-color:var(--border) }
+.intel-accent { width:4px; align-self:stretch; flex-shrink:0; border-radius:2px 0 0 2px; margin-left:-16px; margin-right:10px }
+.intel-title  { font-size:13px; font-weight:500; flex:1 }
+.intel-meta   { display:flex; gap:5px; align-items:center; flex-shrink:0 }
+.intel-body   { display:none; padding:14px 16px }
+.intel-card.open .intel-body { display:block }
+.intel-src    { font-size:10px; color:var(--muted); margin-bottom:8px; display:flex; align-items:center; gap:6px }
+.intel-src a  { color:var(--notion); text-decoration:none }
+.intel-src a:hover { text-decoration:underline }
+.intel-text   { font-size:12px; color:var(--teal); line-height:1.65; white-space:pre-wrap }
+.intel-tasks  { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px }
+
+/* ── ENH table ───────────────────────────────── */
+.fdbk-table { width:100%; border-collapse:collapse; font-size:12px }
+.fdbk-table td { padding:6px 10px; border-bottom:1px solid var(--border) }
+.fdbk-table tr:last-child td { border-bottom:none }
+.fdbk-table td:first-child { font-weight:600; color:var(--muted); width:140px }
+
+/* ── Section label ───────────────────────────── */
+.section-sub { font-size:12px; color:var(--muted); margin-bottom:14px }
+
+/* ── Compact card body ───────────────────────── */
+.compact-body { padding:10px 16px; font-size:12px; color:var(--muted) }
+</style>
+
+<style>
+/* ── Mobile overrides ──────────────────────────── */
+@media (max-width: 768px) {
+  .header           { padding: 0 14px; height: 52px }
+  .header-sub       { display: none }
+  .header-pills     { gap: 5px }
+  .pill             { padding: 3px 7px; font-size: 9px }
+  .summary-strip    { padding: 8px 14px; gap: 12px; overflow-x: auto; flex-wrap: nowrap }
+  .sum-card         { min-width: 52px }
+  .sum-num          { font-size: 17px }
+  .tabs             { padding: 0 8px; overflow-x: auto; gap: 0 }
+  .tab-btn          { padding: 10px 10px; font-size: 11px; white-space: nowrap }
+  .tab-badge        { display: none }
+  main              { padding: 12px 12px 100px }
+  .filter-bar       { gap: 6px }
+  .search-input     { font-size: 16px /* prevents iOS zoom */ }
+  .fbtn             { padding: 8px 10px; font-size: 11px; min-height: 36px }
+  .card-inner       { padding: 10px 10px }
+  .card-num         { display: none }
+  .card-title       { font-size: 12px }
+  .badge            { font-size: 9px; padding: 2px 5px }
+  .card-right       { gap: 4px }
+  .itab             { padding: 9px 12px; font-size: 11px; min-height: 40px }
+  .ipanel           { padding: 10px 12px }
+  .note-item        { padding: 8px 10px }
+  .note-summary     { font-size: 11px }
+  .note-textarea    { font-size: 16px /* prevents iOS zoom */; min-height: 120px }
+  .btn              { min-height: 36px; padding: 8px 12px }
+  .btn-sm           { min-height: 32px; padding: 6px 10px }
+  .qa-row           { padding: 8px 12px; gap: 6px }
+  .intel-header     { padding: 10px 12px }
+  .intel-title      { font-size: 12px }
+  .intel-body       { padding: 10px 12px }
+  .intel-text       { font-size: 11px }
+  .fdbk-table td    { padding: 5px 8px; font-size: 11px }
+  .fdbk-table td:first-child { min-width: 110px }
+  .compact-body     { font-size: 11px; padding: 8px 12px }
+  .section-sub      { font-size: 11px }
+}
+
+/* Smooth scrolling + tap highlight */
+* { -webkit-tap-highlight-color: rgba(3,45,66,.08) }
+html { scroll-behavior: smooth }
+
+/* Sticky header height correction for iOS safe area */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .header { padding-top: env(safe-area-inset-top) }
+  .tabs   { top: calc(56px + env(safe-area-inset-top)) }
+}
+</style>
+</head>
+<body>
+<div id="app">Loading ICE Intelligence Center…</div>
+
+<!-- Pull in data + React -->
+<script>
+// ─────────────────────────────────────────────
+// ICE Dashboard — Structured Data
+// Tasks pulled live 2026-04-23 from attsncoteam
+// ─────────────────────────────────────────────
+
+window.ICE_DATA = {
+
+  meta: {
+    pulled: "2026-04-23",
+    instance: "attsncoteam",
+    analyst: "Marco De Leonardis",
+    notion_notes_scanned: 238,
+  },
+
+  // ── SN state / priority lookups ──────────────
+  states: {
+    "1":  { label: "Open",        color: "#0176D3", bg: "#E8F4FD" },
+    "2":  { label: "WIP",         color: "#044355", bg: "#E5F3EF" },
+    "-5": { label: "Not Started", color: "#546E7A", bg: "#F3F3F3" },
+    "11": { label: "On Hold",     color: "#DD7A01", bg: "#FEF3E2" },
+    "3":  { label: "Closed",      color: "#3BA755", bg: "#EAF6EE" },
+    "4":  { label: "Cancelled",   color: "#C23934", bg: "#FDE9E9" },
+  },
+
+  priorities: {
+    "1": { label: "P1", color: "#C23934", bg: "#FDE9E9" },
+    "2": { label: "P2", color: "#DD7A01", bg: "#FEF3E2" },
+    "3": { label: "P3", color: "#0176D3", bg: "#E8F4FD" },
+    "4": { label: "P4", color: "#546E7A", bg: "#F3F3F3" },
+    "5": { label: "P5", color: "#81B5A1", bg: "#F0F6F4" },
+  },
+
+  types: {
+    "task":        { label: "Task",     color: "#044355" },
+    "meeting":     { label: "Meeting",  color: "#546E7A" },
+    "ENH Request": { label: "ENH",      color: "#5A31F4" },
+    "Workshop":    { label: "Workshop", color: "#0176D3" },
+  },
+
+  // ── Notion notes master list ─────────────────
+  notes: {
+    n_gov_esc:  { date:"2026-02-25", title:"NowAssist Governance Escalation",            url:"312c4815fefe80ed9d9dddf58c15d497" },
+    n_access:   { date:"2026-02-26", title:"Access Issues (Sid)",                        url:"313c4815fefe80f2af1dc44fbdad4a57" },
+    n_biz_rev:  { date:"2026-02-26", title:"Business Review: Creator App Dev",           url:"313c4815fefe801e8b56fe43e957eca8" },
+    n_kg_awa:   { date:"2026-02-19", title:"Now Assist Knowledge Governance + AWA",      url:"30cc4815fefe807a9be6cd7ac711f4a9" },
+    n_guardrail:{ date:"2026-02-27", title:"Technical Guardrails",                       url:"314c4815fefe805e93f8dd8e32158631" },
+    n_stew_feb: { date:"2026-02-24", title:"Stewardship Pods Bi-Weekly (Feb 24)",        url:"311c4815fefe80e1acb6c50d0914189c" },
+    n_scan_eng: { date:"2026-02-24", title:"Scan Engine Discussion",                     url:"311c4815fefe80a5a7dcd6774c443390" },
+    n_ec_gov:   { date:"2026-02-25", title:"EC Roadmap & Governance Sync",               url:"312c4815fefe8051be5de53188842906" },
+    n_roadmap:  { date:"2026-03-05", title:"Now Assist Proposed Roadmap",                url:"31ac4815fefe8026a846f8131ac36be4" },
+    n_exec_sum: { date:"2026-03-19", title:"Executive Summary: Now Assist at AT&T",      url:"74b7fd8be5704447bb21375c24a2fbd8" },
+    n_sec_find: { date:"2026-03-16", title:"Now Assist AI Security Findings",            url:"325c4815fefe80f490d2ebce1d35cba7" },
+    n_va_mar16: { date:"2026-03-16", title:"VA/NA Daily Standup (Mar 16)",               url:"325c4815fefe8062b72cc938f031d318" },
+    n_loren_na: { date:"2026-03-18", title:"Sync with Loren on Now Assist at AT&T",      url:"327c4815fefe807bac36dcef554df543" },
+    n_catalog_sync_apr7: { date:"2026-04-07", title:"ServiceNow Catalog Item sync w/ Loren", url:"33bc4815fefe80f59712eaf9baea7541" },
+    n_creator_demo: { date:"2026-03-26", title:"Now Assist Creator Demo DMND0005519",    url:"32fc4815fefe8058a077d32621ccb072" },
+    n_gai_metrics: { date:"2026-03-31", title:"ServiceNow Apps - genAI metrics",         url:"334c4815fefe809daa15f280eee3c30d" },
+    n_gai_cont: { date:"2026-04-06", title:"genAI Metrics (continued)",                  url:"33ac4815fefe80c598feef058dfdc5e9" },
+    n_healthscan: { date:"2026-04-02", title:"April HealthScan Readout",                 url:"336c4815fefe80c6ab5be812d961c02e" },
+    n_negar:    { date:"2026-03-30", title:"Sync with Negar – Risk Process",             url:"333c4815fefe805cb21ee23f2b6ac334" },
+    n_jodi_risk:{ date:"2026-04-08", title:"Risk Management Sync with Jodi",             url:"33bc4815fefe8045b2a1e8c26d378a2f" },
+    n_ice_wkly: { date:"2026-04-20", title:"ICE Team Weekly",                            url:"34ac4815fefe80db9173de0e4a599fa7" },
+    n_catalog_apr14: { date:"2026-04-14", title:"Service Catalog PA/Steward Sync (Apr 14)", url:"342c4815fefe8076aa4fe0e9b16d79ad" },
+    n_arb_apr8: { date:"2026-04-08", title:"Architecture Review Board (Apr 8)",          url:"33ec4815fefe800c9a6fedd67f59cd42" },
+    n_arb_apr20:{ date:"2026-04-20", title:"Architecture Review Board (Apr 20)",         url:"34ac4815fefe805abbcce8107868fbf9" },
+    n_arb_apr22:{ date:"2026-04-22", title:"Architecture Review Board (Apr 22)",         url:"34ac4815fefe802e8170e2fafa0c88ee" },
+    n_arb_feb23:{ date:"2026-02-23", title:"Architecture Review Board (Feb 23)",         url:"310c4815fefe80f5b7c4cd06d62ea77f" },
+    n_arb_apr15:{ date:"2026-04-15", title:"Architecture Review Board (Apr 15)",         url:"342c4815fefe807a8d06df07613ffca0" },
+    n_va_apr7:  { date:"2026-04-07", title:"VA/NA Daily Standup (Apr 7)",                url:"33bc4815fefe80a6b5b2f5b364eaba9e" },
+    n_clone:    { date:"2026-04-09", title:"Now Assist Creator Clone Discussion",        url:"33ac4815fefe80c598feef058dfdc5e9" },
+    n_plugin:   { date:"2026-04-10", title:"Creator Plugin Strategy Reversal",           url:"33bc4815fefe80cfa96cd739b7460158" },
+    n_ec_ai_apr21: { date:"2026-04-21", title:"Employee Center + AI (VA & Search) Apr 21", url:"349c4815fefe8050aeebe550d4d0ae68" },
+    n_aict_gap: { date:"2026-04-21", title:"AICT Capabilities Discussion for AT&T",      url:"34ac4815fefe80948adac3c74d9e8cef" },
+    n_notif_apr14: { date:"2026-04-14", title:"Notifications & Knowledge Sync (Apr 14)", url:"343c4815fefe803db14fcf138aeac689" },
+    n_notif_apr7: { date:"2026-04-07", title:"Notifications & Knowledge Sync (Apr 7)",   url:"33bc4815fefe806893e4d4111785d22f" },
+    n_stew_apr21: { date:"2026-04-21", title:"Stewardship Pods Bi-Weekly (Apr 21)",      url:"349c4815fefe809bbfc1f5d6647f9f34" },
+    n_ec_ai_apr7: { date:"2026-04-07", title:"Employee Center + AI (Apr 7)",             url:"33bc4815fefe806893e4d4111785d22f" },
+    n_town_hall:{ date:"2026-04-14", title:"ATS 1Q2026 Town Hall",                       url:"342c4815fefe808abf21db7436036bc2" },
+    n_loren_ais:{ date:"2026-04-15", title:"Sync with Loren on AIS (Okter vs Notion)",   url:"343c4815fefe80618adfeccac914a42a" },
+    n_qir:      { date:"2026-04-03", title:"QIR Notes – Team Highlights",                url:"336c4815fefe80b8b3a9cd23638d0f83" },
+    n_va_mar26: { date:"2026-03-26", title:"VA/NA Daily Standup (Mar 26)",               url:"32fc4815fefe8048bf34ed08e3e555d2" },
+    n_ecpro_apr20: { date:"2026-04-20", title:"EC Pro Biweekly Sync (Apr 20)",           url:"34ac4815fefe80859e54ee834cb88780" },
+    n_ecpro_mar9: { date:"2026-03-09", title:"EC Pro Biweekly Sync (Mar 9)",             url:"31ec4815fefe80d290a2d95475910afb" },
+    n_pa_rocket:{ date:"2026-04-09", title:"April PA Rocketship",                        url:"33bc4815fefe80b4a384c44067f98c50" },
+    n_ec_gov_apr21: { date:"2026-04-21", title:"EC Roadmap & Governance Sync (Apr 21)", url:"349c4815fefe8088b64eddf65b5fdf92" },
+    n_ec_ai_apr14: { date:"2026-04-14", title:"Employee Center + AI (Apr 14)",           url:"342c4815fefe804a97cbd52ac3c1fa67" },
+    n_demand_apr20: { date:"2026-04-20", title:"Weekly Impact & Demand Sync (Apr 20)",   url:"34ac4815fefe802d9989cc85ea7f8a14" },
+    n_arb_mar25:{ date:"2026-03-25", title:"Architecture Review Board (Mar 25)",         url:"32ec4815fefe80db9de2cf2dbc81a509" },
+    n_demand_apr13: { date:"2026-04-13", title:"Internal Demand Review (Apr 13)",        url:"342c4815fefe804a97cbd52ac3c1fa67" },
+    n_wkly_imp: { date:"2026-04-20", title:"Impact Squad Weekly Working Session 1",      url:"34ac4815fefe804d8a57ed6743a858ce" },
+    n_plat_ops: { date:"2026-04-09", title:"ATTCOMM Platform Ops Review (Apr 9)",        url:"33bc4815fefe809b92adc68e6190fd82" },
+    n_prog_sync:{ date:"2026-04-09", title:"ATTCOMM Program Sync (Apr 9)",               url:"33bc4815fefe80cfa96cd739b7460158" },
+    n_jaime_11: { date:"2026-04-10", title:"Jaime 1:1 (Apr 10)",                        url:"33bc4815fefe80b4a384c44067f98c50" },
+    n_itap_soft:{ date:"2026-03-31", title:"Ask-iTAP Soft Launch",                       url:"334c4815fefe80ec8f47edba9ae37ce6" },
+    n_mcp_check:{ date:"2026-04-22", title:"MCP Server Development Check-in w/ Loren",  url:"34ac4815fefe8000b11ae6403523f16d" },
+    n_ec_ai_apr6: { date:"2026-04-06", title:"Employee Center + AI (Apr 6)",             url:"33bc4815fefe809b92adc68e6190fd82" },
+    n_ecpro_apr6: { date:"2026-04-06", title:"EC Pro Biweekly Sync (Apr 6)",             url:"33bc4815fefe809b92adc68e6190fd82" },
+  },
+
+  // ── Tasks (38 active, pulled live) ────────────
+  tasks: [
+    {
+      number: "ICE0011276", state: "2", priority: "4", type: "task",
+      title: "Now Assist AI Security Findings",
+      updated: "2026-03-19",
+      notes: [
+        { ref: "n_sec_find", summary: "16 AppOmni findings reviewed. 4 inapplicable. Open: Gopi severity levels, Sherin API export (CS9074440), SN performance case, Azure overflow disable." },
+        { ref: "n_va_mar16", summary: "AppOmni findings referenced as blockers to Creator demo scope. CDO/CSO demo planning discussion." },
+        { ref: "n_arb_apr8", summary: "AppOmni CSO Vulnerability Emergency Response plugin v5.2.3 approved and deployed — closes one finding." },
+        { ref: "n_va_apr7", summary: "CSO handshake approval contingent on attestation to implement logging by permission group." },
+      ],
+      workNote: `Status update 2026-04-23 (ICE0011276):
+
+16 AppOmni findings reviewed in Mar 16 session. 4 confirmed inapplicable (agent guard N/A, mobile N/A, Row 9 MAINT, Row 16 agents disabled). Ethan added remediation comments to all findings in shared spreadsheet.
+
+Open blockers:
+- Gopi Chand Uppala: confirm severity levels with AT&T SaaS security team
+- Sherin Mathew: AppOmni API export with descriptions (CS9074440) — confirm attachment status
+- SN performance case: still needed for proposed property changes
+- Azure overflow property: recommend disabling (allow_overflow_to_azure)
+
+Apr 8 ARB: CSO Vulnerability Emergency Response plugin v5.2.3 approved and deployed — closes one of the AppOmni findings.
+Apr 7 VA/NA standup: CSO handshake for Creator contingent on logging attestation by permission group — directly related to AppOmni findings scope.`,
+    },
+    {
+      number: "ICE0011559", state: "-5", priority: "4", type: "task",
+      title: "CDO/CSO Process Clarity from Marcus Anthony",
+      updated: "2026-03-30",
+      urgent: true,
+      notes: [
+        { ref: "n_ec_ai_apr21", summary: "CRITICAL: Premium chat deprecated platform-wide in ~2 months. Agentic required → Now Assist MANDATORY for VA. Strongest executive lever for blanket approval yet.", highlight: true },
+        { ref: "n_arb_apr8", summary: "NowAssist for Creator approved for lower env (dev-only). Formal ARB gate confirmed 2026-04-08." },
+        { ref: "n_va_apr7", summary: "CSO handshake approval confirmed — contingent on attestation to implement logging by permission group." },
+        { ref: "n_plugin", summary: "Strategy reversed: install plugin in production with skills disabled (product team recommendation)." },
+        { ref: "n_roadmap", summary: "Marcus confirmed 'fast pass' approach for Creator. Leadership acknowledges 'doesn't know what it's doing with AI.'" },
+        { ref: "n_creator_demo", summary: "Now Assist for Creator demo completed. Admin controls behind Creator role confirmed." },
+      ],
+      workNote: `Status update 2026-04-23 (ICE0011559):
+
+DECISION REACHED: CSO verbal handshake approval granted (2026-04-07), contingent on attestation to implement logging by permission group. ARB formal approval 2026-04-08 for Dev 1-5 and AT&T Discovery Dev only. Harry Hwu is ops lead. Ethan Ohmer submitted store app request 2026-04-07. Creator plugin strategy: install in production with skills disabled (product team recommendation per 2026-04-10).
+
+NEW ESCALATION LEVER (2026-04-21): Platform-wide premium chat deprecation confirmed by PlatformOps in ~2 months. Agentic functionality required for premium chat → Now Assist effectively mandatory for Virtual Agent. Use this as the executive case for blanket CDO/CSO approval for all OOB Now Assist capabilities.
+
+Pending:
+- Formal written CDO/CSO permit still needed (verbal handshake only)
+- Harry Hwu: confirm clone process preservation update
+- Attestation log by permission group: confirm Ethan has implemented
+- Blanket approval for OOB capabilities beyond Creator (ITSM, CSM, TSM, Workplace, S2P)`,
+    },
+    {
+      number: "ICE0011565", state: "-5", priority: "4", type: "task",
+      title: "Understand Strategy for NowAssist on the Platform",
+      updated: "2026-03-30",
+      notes: [
+        { ref: "n_exec_sum", summary: "$2.1M deal, zero expansion in 3 months. CDO 'silent agenda' keeping Now Assist contained. 5 recommendations + post-approval playbook. Include in status report.", highlight: true },
+        { ref: "n_gov_esc", summary: "CSO/CDO not integrated, no documented policy — 'seat-of-the-pants' guidance. Blanket approval proposed. Ask AT&T conflict of interest." },
+        { ref: "n_roadmap", summary: "Marcus: leadership doesn't know what it's doing with AI. Fast pass for Creator. CSO frustrated product 'not fully baked.'" },
+        { ref: "n_town_hall", summary: "AT&T AI taxonomy: Build/Work/Run. SN only in 'AI to Build.' $3B+ spend, $62M over budget Q1. Microsoft releasing agent governance tool." },
+        { ref: "n_loren_ais", summary: "Sales not engaging Jeremy Legg at right level. SN missing 'AI to Run' entirely. Notion POC proposed." },
+        { ref: "n_aict_gap", summary: "AICT only provides department-level Now Assist tracking — not user-level. ENH opportunity." },
+      ],
+      workNote: `Status update 2026-04-23 (ICE0011565):
+
+Context from 238-note Notion scan: AT&T's Now Assist strategy is severely constrained by CDO/CSO governance bottlenecks. $2.1M NNACV deal signed Nov 2024. Enterprise license active Jan 1, 2026 (ITSM, CSM, TSM, Workplace, S2P). Only HRSD is live — zero expansion in 4 months.
+
+CDO/CSO have no documented policy. Each OOB capability requires separate full review (identical underlying tech). CREAT submission had 55 technical form errors. Suspected CDO "silent agenda" to position Ask AT&T as enterprise AI platform.
+
+AT&T positions SN only in "AI to Build" (ATS Town Hall Apr 14). Missing from "AI to Run" and "AI to Work." AICT Core gap: user-level adoption tracking not available (confirmed Apr 21).
+
+New escalation lever: Premium chat deprecation confirmed platform-wide in ~2 months. Now Assist mandatory for VA. Use this for blanket approval ask.
+
+Recommended next action: Schedule Marcus Anthony working session with CDO/CSO approvers. Bring Executive Summary doc. Frame blanket approval as platform-compliance requirement, not optional feature.`,
+    },
+    {
+      number: "ICE0011689", state: "2", priority: "2", type: "task",
+      title: "ServiceNow Apps - genAI Metrics",
+      updated: "2026-04-11",
+      notes: [
+        { ref: "n_gai_metrics", summary: "Three-phase KPI approach for LevelUp Hub. Phase 1: gold tables (productivity + AI adoption). Your action: prepare gold tables ASAP." },
+        { ref: "n_gai_cont", summary: "Creator Assist: 4/5 orgs signed, CSO sign-off pending. KPI gating requirement for LevelUp Hub." },
+        { ref: "n_aict_gap", summary: "CRITICAL GAP: User-level Now Assist tracking NOT available in AICT Core — department-level only.", highlight: true },
+        { ref: "n_ec_ai_apr21", summary: "AT&T wants alerting + adoption tracking in Instance Observer. Not supported today. ENH candidate." },
+      ],
+      workNote: `Status update 2026-04-23 (ICE0011689):
+
+Three-phase KPI framework agreed (Mar 31):
+- Phase 1: SN Platform Team prepares "gold" tables — productivity KPIs (lead time, deployment frequency, YTD throughput) + AI adoption metrics for LevelUp Hub ingestion
+- Phase 2: Sprint efficiency via ALM data (after Jira Align/Cloud migration)
+- Phase 3: Additional KPIs + automated onboarding process
+
+Open action (my responsibility): Prepare gold KPI tables before next follow-up session. Confirm whether Apr 6 session produced tables.
+
+AICT gap (confirmed Apr 21): User-level Now Assist adoption tracking not available in AICT Core — department-level only. sys_gen_ai_usage_log is OOB mechanism (confirmed Apr 7 EC+AI sync). Recommend ENH submission for AICT to expose user-level data.
+
+Measurement challenges: AI flag persists permanently on flagged code. Acceptance rate ambiguous. SN walled garden model ≠ standard git-based dev metrics.`,
+    },
+    {
+      number: "ICE0011911", state: "2", priority: "2", type: "meeting",
+      title: "ATS 1Q2026 Town Hall - Meeting Notes",
+      updated: "2026-04-14",
+      notes: [
+        { ref: "n_town_hall", summary: "AT&T AI taxonomy: Build/Work/Run. SN only in 'AI to Build.' $3B+ spend, $62M over budget Q1. Rich Bache pursuing ISO 42001. 27B tokens/day processed." },
+        { ref: "n_loren_ais", summary: "Sales not engaging Jeremy Legg at right level. PAs being used as reconnaissance, not architects. SN missing 'AI to Run' entirely." },
+      ],
+      workNote: `Meeting notes summary 2026-04-23 (ICE0011911):
+
+AT&T ATS 1Q2026 Town Hall (Apr 14, 2026). Hosted by Jeremy Legg (CTO) and Andy Marcus (VP Engineering). SN observer: Marco De Leonardis.
+
+Key findings:
+- AT&T three-pillar AI taxonomy: AI to Build / AI to Work / AI to Run
+- ServiceNow appears ONLY in "AI to Build" — alongside Salesforce, Workday, GitHub Copilot
+- SN absent from "AI to Run" (agent governance, observability, risk, security)
+- 27 billion tokens processed daily across AT&T AI stack
+- $3B+ ATS spend, $62M over budget Q1 2026
+- Microsoft releasing enterprise agent governance tool this month — direct competitor in "AI to Run"
+- Rich Bache pursuing ISO 42001 AI governance certification — direct IRM/GRC lane for SN
+- OTEL required for all AI observability logs
+
+Action: Circulate brief to squad. Identify "AI to Run" champion at AT&T (Rich Bache / IRM). Reframe QIR to three-pillar taxonomy.`,
+    },
+    {
+      number: "ICE0010847", state: "2", priority: "2", type: "task",
+      title: "FDBK0043217 Lack of Up-to-Date Documentation",
+      updated: "2026-03-27",
+      fdbk: "FDBK0043217",
+      notes: [
+        { ref: "n_ecpro_apr6", summary: "FDBK0043217 PM pushback: may be defect not enhancement. Last escalation: Mayukh Bhaowal Mar 24. AI Search sort limitations also flagged." },
+        { ref: "n_ec_ai_apr21", summary: "KB onboarding to AICT starts May 1 — KBB ingestion control gap will become acute as more KBs are onboarded." },
+      ],
+      workNote: `Status update 2026-04-23 (ICE0010847 / FDBK0043217):
+
+FDBK0043217 — KB block-level ingestion control for Now Assist. State: Submitted, not progressed.
+
+Last escalation: 2026-03-24 to Mayukh Bhaowal (Joe Lichtman's manager).
+
+PM pushback: PM argues this may be a defect (User Criteria not working correctly at block level) rather than enhancement. Counter-argument: whether defect or ENH, the business need remains. Classification debate does not change customer urgency.
+
+URGENCY RISING (Apr 21): Now Assist KB onboarding starts May 1 (one KB at a time to AICT). KBB ingestion control gap will be acute as more KBs are onboarded.
+
+Also see: FDBK0040100, DMND0005041.`,
+    },
+    {
+      number: "ICE0011528", state: "2", priority: "5", type: "task",
+      title: "GuardRails – Helping Telco Customers Move Faster",
+      updated: "2026-03-27",
+      notes: [
+        { ref: "n_guardrail", summary: "ARB allows last-minute submissions without steward review. Instance scan governance gaps. Stay Well plan alignment needed." },
+        { ref: "n_negar", summary: "Risk/issue/decision separation into distinct processes. OOB RIDAC vs custom approach confirmed." },
+        { ref: "n_catalog_sync_apr7", summary: "Critical catalog anti-patterns: items calling other items, recursive loops. 0% meet Now Assist requirements, 10M hours estimated remediation.", highlight: true },
+        { ref: "n_catalog_apr14", summary: "AI-generated code governance gap: record producer with creates/updates/deletes — no review gate. Catalog Builder pilot approved." },
+        { ref: "n_arb_apr15", summary: "ARB serves as governance enforcement layer. GuardRails doc should be structured as ARB-ready policy." },
+      ],
+      workNote: `Status update 2026-04-23 (ICE0011528):
+
+Critical live example (Apr 14): Developer created a record producer performing creates, updates, deletes across multiple tables using AI-generated code — no governance review gate in ARB process. This is exactly what guardrails are designed to prevent.
+
+Catalog governance findings (Apr 7):
+- Catalog items calling other catalog items (anti-pattern)
+- Conversational items with recursive loops
+- 0% of catalog items meet Now Assist conversational requirements
+- 10 million hours estimated for remediation — needs leadership elevation
+
+ARB enforcement: GuardRails document should be structured as ARB-ready policy — items that can be cited when rejecting rhythms. Feb 27: ARB currently allows last-minute submissions without adequate steward review.
+
+CI/CD connection: Apr 10 ATTCOMM CICD/Release Ops Alignment — 7 gaps reviewed, 6 confirmed. GuardRails should cover deployment validation as a key control point.`,
+    },
+    {
+      number: "ICE0004579", state: "2", priority: "4", type: "task",
+      title: "HealthScans",
+      updated: "2026-04-04",
+      notes: [
+        { ref: "n_healthscan", summary: "Performance +2%. 17 new findings. 100 unlinked catalog tasks. Scheduled jobs under inactive users. AT&T prefers in-platform review over PowerPoint." },
+        { ref: "n_ice_wkly", summary: "Risk management OOB approach confirmed. HealthScan story prioritization — push OOB risk updates to production." },
+        { ref: "n_jodi_risk", summary: "State model: draft vs active. RIDAC OOB path confirmed over custom risk table." },
+      ],
+      workNote: `April HealthScan readout 2026-04-23 (ICE0004579):
+
+April HealthScan completed 2026-04-02:
+- Overall performance score +2%
+- 10 findings resolved (client-side scripting)
+- 17 new findings introduced — ongoing technical debt
+- 4 new business rules using current.update (avoid — infinite loop risk)
+- 16 script includes with duplicate names — naming convention enforcement needed
+- 100 catalog tasks not linked to anything — workflow closure issues
+- Scheduled jobs running under inactive users — automate user inactivation
+
+AT&T preference: review findings directly in the platform, not via PowerPoint.
+
+Apr 20 ICE Team Weekly: OOB risk approach confirmed. Story prioritization: push OOB risk updates to production rather than deploying incomplete impact risk work.`,
+    },
+    {
+      number: "ICE0011830", state: "2", priority: "4", type: "task",
+      title: "Value Realization: Employee Center Benefits Tracking",
+      updated: "2026-04-11",
+      notes: [
+        { ref: "n_ecpro_apr20", summary: "$3.38M in quantified benefits at end of March (AI vs non-AI breakdown). Framework finalized — ready for value realization reporting.", highlight: true },
+        { ref: "n_pa_rocket", summary: "A2E/A2X process refresher. Value reporting cadence discussed." },
+        { ref: "n_ecpro_mar9", summary: "EC Pro confirmed in maintenance mode — no further enhancements. Workplace Services next major feature (holding pattern)." },
+      ],
+      workNote: `Status update 2026-04-23 (ICE0011830):
+
+From Apr 20 EC Pro Biweekly: Benefits quantification framework finalized. $3.38M in quantified benefits at end of March — AI vs non-AI breakdown documented. Framework ready for reporting.
+
+Becci's ask: official solution for capturing, visualizing, and reporting benefits (EC delivered $300K cost avoidance in Q1, iTAP delivered $150K).
+
+EC Pro context: Product team confirmed EC Pro is in maintenance mode — no further enhancements (Corey Lehman, Mar 5). Workplace Services next major EC feature in holding pattern.
+
+Next action: Confirm Impact Portal is the reporting vehicle for $3.38M figure. Establish quarterly QBR cadence to report to AT&T leadership.`,
+    },
+    {
+      number: "ICE0010674", state: "11", priority: "5", type: "task",
+      title: "AT&T Access Issue(s)",
+      updated: "2026-04-23",
+      notes: [
+        { ref: "n_access", summary: "Root cause: Microsoft Authenticator on disposed phone. Endless loop with alternative auth methods. Sid to submit IT ticket; Marco to send screenshots." },
+        { ref: "n_plat_ops", summary: "Entra ID migration in progress — new login format rolling out. Possible connection to ongoing access issue." },
+        { ref: "n_wkly_imp", summary: "DOMS deployment and access issues discussed. GCC environment cloning barriers noted." },
+      ],
+      workNote: `Access issue status check 2026-04-23 (ICE0010674):
+
+Root cause (documented Feb 26): Microsoft Authenticator registered on disposed phone. IT support needed to reset authenticator on back end.
+
+From Feb 26 meeting:
+- Sid: submit IT service support ticket — STATUS UNKNOWN
+- Marco: send screenshots to support ticket — STATUS UNKNOWN
+
+This issue has been open since at least February 26, 2026 — approximately 8 weeks. State shows On Hold (updated 2026-04-23).
+
+Apr 9 Platform Ops Review: Entra ID migration in progress — new login format rolling out. May be related.
+
+IMMEDIATE ACTION: Confirm with Sid whether IT ticket was submitted and resolved. If still blocked, escalate through Gopi Chand Uppala or Jodi Syverson.`,
+    },
+    {
+      number: "ICE0011578", state: "2", priority: "3", type: "Workshop",
+      title: "Demo: Modernize Front Door Experience – EA Workspace/NowAssist",
+      updated: "2026-04-13",
+      dmnd: "DMND0005564",
+      notes: [
+        { ref: "n_demand_apr20", summary: "PA advisory involvement during TechM build phase formalized as tracked demand. XMO portfolio scope confirmed." },
+        { ref: "n_arb_mar25", summary: "Digital Integration Management (EA Workspace component) reviewed at ARB — ITAP team reviewing installation." },
+        { ref: "n_demand_apr13", summary: "Demand 2545 (data classification model mapping) nearly qualified. XMO scope across portfolio discussed." },
+      ],
+      workNote: `Status update 2026-04-23 (ICE0011578 — DMND0005564):
+
+Demo for Sohaib Siddiqui / XMO Portfolio Program. Five demo areas confirmed: EA Workspace as front door, intake triage with architectural context, Now Assist for EA (ADR summarization), governance consistency, expected outcomes.
+
+Apr 20: PA advisory involvement during TechM build phase now formalized as a tracked demand — positive signal.
+
+Mar 25 ARB: Digital Integration Management (EA Workspace component) reviewed — ITAP team evaluating installation. Confirm current install status before demo.`,
+    },
+    {
+      number: "ICE0011785", state: "1", priority: "3", type: "meeting",
+      title: "SERIES: Notifications & Knowledge PA/Stewardship Sync",
+      updated: "2026-04-07",
+      notes: [
+        { ref: "n_notif_apr14", summary: "AI integration crisis: multiple teams requesting parallel MS Copilot→ServiceNow integrations without coordination. No central owner.", highlight: true },
+        { ref: "n_notif_apr7", summary: "Kevin demonstrated Catalog Builder works in scoped apps — disproves AT&T's long-held belief. Unblocks catalog governance scenarios." },
+        { ref: "n_stew_apr21", summary: "23/34 stewards certified. ITAP Q2 on track. New pod reporting format rolling out. Now Assist tenant onboarding discussed." },
+      ],
+      workNote: `Meeting series notes 2026-04-23 (ICE0011785):
+
+Apr 14: AI integration crisis — Kevin Donahoo flagged multiple AT&T teams independently requesting Microsoft Copilot access to ServiceNow data without coordination. Governance fragmentation risk. Recommend raising at next ARB as a governance flag. GenAI governance doc (ICE0011659) must address this.
+
+Apr 7: Kevin demonstrated Catalog Builder works in scoped applications — disproves AT&T's long-held belief. Unblocks several catalog governance scenarios.
+
+Apr 21 Stewardship Pods: 23/34 stewards have completed CIS certifications. New pod reporting format rolling out 1-2 days.`,
+    },
+    {
+      number: "ICE0007526", state: "2", priority: "2", type: "ENH Request",
+      title: "ENH – KBB Availability for Now Assist (HR)",
+      updated: "2026-03-24",
+      fdbk: "FDBK0043217",
+      notes: [
+        { ref: "n_ec_gov", summary: "AI Search indexing issues discussed. KBB ingestion controls raised as governance gap — directly supports this ENH request." },
+        { ref: "n_ecpro_apr6", summary: "PM pushback: may be defect not enhancement. FDBK0043217 not progressed." },
+        { ref: "n_ec_gov_apr21", summary: "KB onboarding to AICT starts May 1. KBB ingestion control gap will become acute as onboarding scales." },
+      ],
+      workNote: `ENH status 2026-04-23 (ICE0007526 / FDBK0043217):
+
+FDBK0043217 — KB block-level ingestion control for Now Assist. State: Submitted, not progressed. Escalation: 2026-03-24 to Mayukh Bhaowal.
+
+PM pushback: defect vs enhancement classification debate. Counter: business need unchanged regardless.
+
+URGENCY RISING: May 1 — KB onboarding to AICT starts (one at a time). KBB control gap will be acute. Also see: FDBK0040100, DMND0005041.`,
+    },
+    {
+      number: "ICE0011359", state: "1", priority: "3", type: "meeting",
+      title: "SERIES: 2026 Architecture Review Board (ARB)",
+      updated: "2026-04-14",
+      notes: [
+        { ref: "n_arb_apr8", summary: "NowAssist for Creator approved (dev-only). AppOmni CSO plugin approved. ARB as Now Assist formal governance gate." },
+        { ref: "n_arb_apr20", summary: "4 rhythms approved, 1 rejected (SCART retirement — sets precedent for architectural standards)." },
+        { ref: "n_arb_apr22", summary: "JDBC driver update, data extraction, platform exceptions reviewed." },
+        { ref: "n_arb_feb23", summary: "10 ARB sessions documented Feb 23–Apr 22. Pre-submission rule: 4pm ET day before ARB." },
+      ],
+      workNote: `ARB series notes 2026-04-23 (ICE0011359):
+
+10 ARB sessions documented Feb 23–Apr 22.
+
+Key moments:
+- Apr 8: Creator plugin approved (dev-only), AppOmni CSO plugin approved. Now Assist formal governance gate established.
+- Apr 20: 1 rejection (SCART retirement) — sets precedent for architectural standards.
+- Apr 22: JDBC driver, data extraction approvals.
+- Mar 11: Discussion of ARB as governance enforcement vs. rubber stamp — governance gaps identified.
+
+Pattern insight for ICE0011528: ARB is the enforcement mechanism for guardrails. GuardRails document should be structured as ARB-ready policy.`,
+    },
+    {
+      number: "ICE0006925", state: "2", priority: "3", type: "task",
+      title: "sys_generative_ai_metric – Response Time vs Model delta",
+      updated: "2026-03-13",
+      notes: [
+        { ref: "n_ec_ai_apr7", summary: "sys_gen_ai_usage_log captures user, skill type, timestamp cleanly. Challenge: sync across instances. OOB answer for user-level adoption metrics." },
+        { ref: "n_gai_metrics", summary: "AI flag persists permanently. Acceptance rate ambiguous. Walled garden model complicates measurement." },
+        { ref: "n_ec_ai_apr21", summary: "AT&T wants Now Assist alerting in Instance Observer. AICT Core doesn't support user-level today. ENH opportunity." },
+      ],
+      workNote: `Status update 2026-04-23 (ICE0006925):
+
+Core question: does sys_generative_ai_metric.Response_Time capture model-only latency or end-to-end UI latency?
+
+AICT gap confirmed (Apr 21): user-level tracking not available in AICT Core. OOB mechanism: sys_gen_ai_usage_log (user, skill type, timestamp — confirmed Apr 7).
+
+Next step: engage Gopi/Ethan to confirm Response_Time field scope. If model-only, assess custom dashboard feasibility using usage log + metric table join. ENH candidate: AICT Core user-level tracking.`,
+    },
+    {
+      number: "ICE0011688", state: "-5", priority: "4", type: "task",
+      title: "Now Assist for Knowledge Management Best Practices",
+      updated: "2026-04-03",
+      notes: [
+        { ref: "n_kg_awa", summary: "AWA December work never deployed to Production. KB governance in VA context. Governance approach for AWA queue creation undefined." },
+        { ref: "n_ec_ai_apr14", summary: "NowAssist KB onboarding roadmap: starting May 1, one KB at a time to AICT. Testing: 10 Q&A pairs max, Excel to Ethan." },
+      ],
+      workNote: `Not Started — 2026-04-23 (ICE0011688):
+
+DEADLINE APPROACHING: May 1 — KB onboarding to AICT starts. AWA work from December still not in Production — confirm current status with Ethan/Greg.
+
+Best practices deliverable scope: KB design for Now Assist ingestion, AICT testing process (10 Q&A pairs per KB), AWA governance for queue creation, user criteria standardization.`,
+    },
+    {
+      number: "ICE0011114", state: "2", priority: "4", type: "task",
+      title: "Knowledge Templates",
+      updated: "2026-03-27",
+      notes: [
+        { ref: "n_roadmap", summary: "Similar KB articles across different KBs — teams in silos. User criteria configured differently per team. No standardized dedup process." },
+        { ref: "n_kg_awa", summary: "Knowledge governance in VA context — templates affect how Now Assist surfaces answers. AWA routing governance interrelated." },
+        { ref: "n_ec_ai_apr21", summary: "KB testing: 10 Q&A pairs per KB max, Excel to Ethan. No post-approval KB assessment process exists — quality risk." },
+      ],
+      workNote: `Knowledge Templates — update 2026-04-23 (ICE0011114):
+
+Critical context: AT&T has duplicate KB articles across different KBs (teams working in silos). User criteria configured inconsistently. No standardized dedup process. KB testing process established Apr 21: 10 Q&A pairs per KB max, Excel to Ethan short-term. No post-approval KB assessment — quality risk as onboarding scales.
+
+Template standardization is prerequisite to effective Now Assist KB ingestion starting May 1.`,
+    },
+    {
+      number: "ICE0011659", state: "-5", priority: "4", type: "task",
+      title: "GenAI Governance PDF – Brandon Hilliard",
+      updated: "2026-04-06",
+      notes: [
+        { ref: "n_qir", summary: "Q1 platform stability reviewed. GenAI governance content from QIR — AT&T/SN challenges highlighted." },
+        { ref: "n_notif_apr14", summary: "Parallel Copilot integration crisis — GenAI governance doc needs AI integration patterns section, not just Now Assist approval workflow." },
+        { ref: "n_va_mar26", summary: "CSO GenAI Security Review process — DL-GenAIComplianceReview@att.com identified." },
+      ],
+      workNote: `Not Started — 2026-04-23 (ICE0011659):
+
+The parallel Copilot integration crisis (Apr 14) confirmed the governance doc needs to cover AI integration patterns beyond Now Assist approval — specifically how multiple teams requesting access to ServiceNow data via different AI tools should be governed.
+
+CSO GenAI compliance review DL: DL-GenAIComplianceReview@att.com. Include in doc.
+
+QIR content (Apr 3) provides Q1 context for governance framing.`,
+    },
+    {
+      number: "ICE0011634", state: "-5", priority: "4", type: "task",
+      title: "ServiceNow Apps – genAI Metrics (continued)",
+      updated: "2026-04-01",
+      notes: [
+        { ref: "n_gai_cont", summary: "Creator Assist: 4/5 orgs signed, CSO sign-off pending. KPI gating requirement for LevelUp Hub." },
+      ],
+      workNote: `Not Started — 2026-04-23 (ICE0011634):
+
+Apr 6 follow-up session to ICE0011689. Creator Assist 4/5 orgs signed, CSO sign-off pending. KPI gating requirement for LevelUp Hub integration. Confirm if Apr 6 session produced gold tables.`,
+    },
+    {
+      number: "ICE0011574", state: "-5", priority: "4", type: "task",
+      title: "Post Demo Follow-up: Enterprise Pro License Agreement",
+      updated: "2026-03-30",
+      notes: [
+        { ref: "n_prog_sync", summary: "Phoenix/FedEx Now production delayed to August 2026 (scope increase from Prime)." },
+        { ref: "n_jaime_11", summary: "Jamie committed to sponsor AI adoption strategy after Notion demo." },
+      ],
+      workNote: `Not Started — 2026-04-23 (ICE0011574):
+
+Apr 9 Program Sync: Phoenix/FedEx Now production delayed to August 2026 (scope increase from Prime). Apr 10 Jaime 1:1: Jamie committed to sponsor AI adoption strategy after Notion demo.`,
+    },
+    {
+      number: "ICE0011633", state: "-5", priority: "4", type: "meeting",
+      title: "[Mar-31] Ask-iTAP Soft Launch",
+      updated: "2026-04-01",
+      notes: [
+        { ref: "n_itap_soft", summary: "Soft launch approved Mar 31 (dark launch). Broad announcement planned Apr 10. Rollback: simple KB flag toggle." },
+      ],
+      workNote: `Not Started — 2026-04-23 (ICE0011633):
+
+Soft launch approved Mar 31 (dark launch). Broad announcement planned Apr 10. Rollback: simple KB flag toggle. Apr 13 ARB: Ask-iTAP RITM approved.`,
+    },
+    {
+      number: "ICE0011736", state: "-5", priority: "4", type: "meeting",
+      title: "OpenAI and Premium Chat",
+      updated: "2026-04-06",
+      notes: [
+        { ref: "n_ec_ai_apr21", summary: "Premium chat deprecated platform-wide in ~2 months. Agentic required → Now Assist mandatory for VA. Initial process starting soon.", highlight: true },
+      ],
+      workNote: `Not Started — 2026-04-23 (ICE0011736):
+
+CRITICAL: Apr 21 EC+AI confirmed platform-wide premium chat deprecation. Agentic required → Now Assist mandatory for VA. Initial process starts ~2 months. Use this note to document the platform-level implication for AT&T.`,
+    },
+    {
+      number: "ICE0011920", state: "-5", priority: "4", type: "task",
+      title: "VA/NowAssist Standup",
+      updated: "2026-04-15",
+      notes: [],
+      workNote: `Not Started — 2026-04-23 (ICE0011920):
+
+Apr 21 standup: Code Assist non-admin bug upgraded to P2. TSS approval granted for Now Assist multi-module rollout (~2-month timeline).`,
+    },
+    {
+      number: "ICE0008492", state: "2", priority: "4", type: "task",
+      title: "Now Assist Readiness Evaluation App",
+      updated: "2026-03-27",
+      notes: [
+        { ref: "n_roadmap", summary: "Readiness evaluation plugin deployed to production Mar 1. Ethan to run on ATT.com production (may need Rob/Aaron approval)." },
+        { ref: "n_catalog_sync_apr7", summary: "Apr 8 Service Catalog: 26% platform readiness, 0% catalog items meeting conversational requirements." },
+      ],
+      workNote: `Status update 2026-04-23 (ICE0008492):
+
+Readiness evaluation plugin deployed to production Mar 1. Tool produces Word doc with strength areas, improvement areas, critical blockers.
+
+Apr 8 Service Catalog discussion: 26% platform readiness, 0% catalog items meeting conversational requirements, 10M hours estimated remediation.
+
+Ethan to run on ATT.com production — may need Rob/Aaron approval for performance impact.`,
+    },
+    // ── ENH / On Hold tasks ──
+    { number: "ICE0010567", state: "11", priority: "4", type: "ENH Request", title: "ENH – Restrict Taxonomy Topic Access by User Criteria", updated: "2026-03-23", fdbk: null, notes: [{ ref: "n_ec_gov", summary: "Topic page URL accessible to unauthorized users despite user criteria on mega menu/sub-topics. Feb 25 EC Roadmap: governance gap confirmed." }], workNote: "On Hold — pending BT1 submission. DMND0005413." },
+    { number: "ICE0010569", state: "11", priority: "4", type: "ENH Request", title: "ENH – AI Search Results Control by User Criteria", updated: "2026-03-23", fdbk: null, notes: [{ ref: "n_ecpro_apr6", summary: "AI Search showing restricted taxonomy topics in results. Apr 6 EC Pro: sort limitation also flagged. Related to ICE0010567." }], workNote: "On Hold — pending BT1 submission. DMND0005414." },
+    { number: "ICE0010570", state: "11", priority: "3", type: "ENH Request", title: "ENH – UX Analytics Average Page Load Time", updated: "2026-03-23", fdbk: null, notes: [{ ref: "n_ec_gov", summary: "Average page load time not visible at UX Analytics list level. Admin pain point confirmed." }], workNote: "On Hold — pending BT1 submission. DMND0005415." },
+    { number: "ICE0011997", state: "11", priority: "4", type: "task", title: "Employee Profile Data Visibility Confirmation", updated: "2026-04-21", notes: [{ ref: "n_stew_apr21", summary: "Topic surfaced in stewardship pod Apr 21. Awaiting confirmation." }], workNote: "On Hold. Updated 2026-04-21." },
+    // ── Series / Cadences ──
+    { number: "ICE0008216", state: "1", priority: "4", type: "meeting", title: "SERIES: Employee Center Roadmap & Governance Sync (Weekly)", updated: "2026-04-11", notes: [], workNote: "Recurring weekly. Apr 21: premium chat deprecation confirmed, KB onboarding roadmap (May 1 start)." },
+    { number: "ICE0008225", state: "1", priority: "4", type: "meeting", title: "SERIES: Now Assist / AI Search & Employee Center [Weekly]", updated: "2026-03-17", notes: [], workNote: "Recurring weekly. Apr 7: sys_gen_ai_usage_log confirmed OOB. Apr 21: NAVA migration, KB onboarding roadmap." },
+    { number: "ICE0002202", state: "1", priority: "4", type: "meeting", title: "SERIES: Virtual Agent Daily (steward, impact)", updated: "2026-01-27", notes: [], workNote: "Daily standup. NAVA migration this week. Premium chat deprecation makes Now Assist mandatory for VA in ~2 months." },
+    { number: "ICE0003691", state: "1", priority: "4", type: "meeting", title: "SERIES: Employee Experience Steward Collaboration Pod", updated: "2026-01-27", notes: [], workNote: "Weekly. Apr 21: 23/34 stewards certified. Now Assist ITSM SKU gap for HRSD skills, ARB path for topic content widget approved." },
+    { number: "ICE0001854", state: "1", priority: "4", type: "meeting", title: "SERIES: ICE Team Weekly Sync and Sprint Work", updated: "2026-04-04", notes: [], workNote: "Weekly. Apr 20: risk management OOB confirmed, HealthScan story prioritization, project comment notification plan." },
+    { number: "ICE0006318", state: "1", priority: "4", type: "meeting", title: "SERIES: Weekly ATTCOMM Internal Program Sync", updated: "2026-03-11", notes: [], workNote: "Weekly cadence." },
+    { number: "ICE0009501", state: "1", priority: "4", type: "meeting", title: "SERIES: HR Impact Squad Call – Weekly", updated: "2026-02-23", notes: [], workNote: "Weekly. Mar 12: HR field encryption response, HRSD scope questions." },
+    { number: "ICE0002010", state: "1", priority: "5", type: "meeting", title: "SERIES: Knowledge Management Owners Weekly Forum", updated: "2026-01-27", notes: [], workNote: "Monthly forum. KB onboarding to AICT starting May 1 is relevant context." },
+    { number: "ICE0002012", state: "1", priority: "5", type: "meeting", title: "SERIES: Employee Center Office Hours", updated: "2026-04-11", notes: [], workNote: "Weekly." },
+    { number: "ICE0011666", state: "-5", priority: "4", type: "task", title: "Architecture Review Board Meeting Notes 4.1.2026", updated: "2026-04-02", notes: [], workNote: "Apr 1 ARB notes. Multiple rhythms reviewed, platform exceptions. Documents ongoing ARB cadence." },
+    { number: "ICE0011899", state: "-5", priority: "4", type: "task", title: "Architecture Review Board Meeting Notes 4.13.2026", updated: "2026-04-13", notes: [], workNote: "Apr 13 ARB: Tag Governance upgrade, Kubernetes cluster discovery, change management RITM approved." },
+  ],
+
+  // ── Intelligence briefings ─────────────────────
+  briefings: [
+    {
+      id: "b_premium_chat",
+      title: "🚨 Premium Chat Deprecation — Now Assist Mandatory for VA (~2 months)",
+      priority: "P1", priorityColor: "#C23934",
+      accentColor: "#C23934",
+      tasks: ["ICE0011559","ICE0002202","ICE0011736"],
+      source: { date:"2026-04-21", note: "n_ec_ai_apr21" },
+      body: `Confirmed by PlatformOps (April), 2026-04-21: ServiceNow is deprecating standard and enhanced chat platform-wide. Premium chat is the replacement — and it requires agentic functionality to be enabled. This means Now Assist is becoming a required product to use Virtual Agent. Initial process starts in ~2 months.
+
+Platform is moving toward AI-native — employee slate cannot turn off AI. Governance conversations needed now.
+
+NAVA migration: Ethan implementing this week. Deploy to AICT first for HR testing. KB testing process established: 10 Q&A pairs per KB max, Excel to Ethan short-term.
+
+Open risk: No post-approval KB assessment process. New articles auto-added to analysis without review.
+
+What this means: Blanket CDO/CSO approval ask is now a platform compliance issue, not an optional feature request.`,
+    },
+    {
+      id: "b_exec_sum",
+      title: "📋 Executive Summary: Now Assist at AT&T — $2.1M Deal, Zero Expansion",
+      priority: "Strategic", priorityColor: "#DD7A01",
+      accentColor: "#DD7A01",
+      tasks: ["ICE0011565","ICE0011559"],
+      source: { date:"2026-03-19", note: "n_exec_sum" },
+      body: `Situation: $2.1M NNACV signed Nov 2024. Enterprise license active Jan 1 2026. Zero expansion in 3 months of a 12-month entitlement. CDO suspected "silent agenda" to position Ask AT&T as enterprise AI platform. CREAT submission hit 55 technical form errors.
+
+What's working: HRSD Now Assist live. AI Search: 98K unique users, 688K sessions.
+
+5 Recommendations:
+1. Blanket CDO/CSO approval for all OOB capabilities (same underlying tech — no re-approval)
+2. Now Assist Steering Committee with CDO/CSO as active participants, not sequential gatekeepers
+3. Mandatory XMO routing for all Now Assist requests
+4. Resolve the Ask AT&T question — integrate or deconflict
+5. Empower stewardship — Greg Heyne-caliber steward with US presence and org authority
+
+Post-approval playbook: Phase 1 (wks 1-4) HRSD expansion + ITSM activation. Phase 2 (wks 5-12) CSM/TSM + AI Search fix + agentic pilot. Phase 3 (wks 13-24) Workplace/S2P + ROI reporting.`,
+    },
+    {
+      id: "b_town_hall",
+      title: "📊 ATS Town Hall: SN Only in 'AI to Build' — Missing 'AI to Run' and 'AI to Work'",
+      priority: "Strategic", priorityColor: "#0176D3",
+      accentColor: "#0176D3",
+      tasks: ["ICE0011911","ICE0011565"],
+      source: { date:"2026-04-14", note: "n_town_hall" },
+      body: `AT&T formalized a three-pillar AI taxonomy: Build / Work / Run. ServiceNow appears only in "AI to Build" — alongside Salesforce, Workday, GitHub Copilot. Missing from "AI to Run" (agent governance, observability, risk, security) and "AI to Work" (productivity).
+
+Key numbers: 27B tokens/day processed. $3B+ ATS spend, $62M over budget Q1 2026. Microsoft releasing enterprise agent governance tool this month.
+
+IRM lane: Rich Bache pursuing ISO 42001 AI governance certification — direct SN GRC/IRM opportunity.
+
+Sales gap: Account team not engaging Jeremy Legg (CTO) at right level. PAs being used as reconnaissance, not architects.`,
+    },
+    {
+      id: "b_aict_gap",
+      title: "⚠️ AICT Gap: User-Level Now Assist Tracking Not Available",
+      priority: "Gap", priorityColor: "#DD7A01",
+      accentColor: "#DD7A01",
+      tasks: ["ICE0011689","ICE0006925"],
+      source: { date:"2026-04-21", note: "n_aict_gap" },
+      body: `AT&T requires user-level Now Assist adoption tracking. AICT Core only provides department-level. Multi-instance reporting also limited.
+
+OOB answer: sys_gen_ai_usage_log captures user, skill type, timestamp cleanly (confirmed Apr 7). Main challenge: synchronizing across instances.
+
+ENH opportunity: Instance Observer alerting and user-level AICT data exposure. Candidate for new FDBK submission.
+
+Connection to ICE0006925: Response time and usage granularity gaps share the same root — AICT doesn't expose this data.`,
+    },
+    {
+      id: "b_ai_crisis",
+      title: "🔥 AI Integration Crisis: Parallel MS Copilot→SN Integrations Without Governance",
+      priority: "Risk", priorityColor: "#C23934",
+      accentColor: "#C23934",
+      tasks: ["ICE0011785","ICE0011659"],
+      source: { date:"2026-04-14", note: "n_notif_apr14" },
+      body: `Multiple AT&T teams are independently requesting Microsoft Copilot access to read ServiceNow data — simultaneously, without coordination. No central owner. Each team acting independently. Governance fragmentation risk.
+
+Kevin Donahoo (Knowledge steward) is being pulled into AI integration decisions that should have a central owner. The stewardship model is being stress-tested.
+
+GenAI governance doc (ICE0011659) must address this — AI integration patterns section required, not just Now Assist approval workflow.
+
+Also from Apr 7: Kevin demonstrated Catalog Builder works in scoped applications — disproves AT&T's long-held belief. Unblocks catalog governance scenarios.`,
+    },
+    {
+      id: "b_benefits",
+      title: "💰 EC Pro Benefits Framework Finalized — $3.38M Quantified at End of March",
+      priority: "Milestone", priorityColor: "#3BA755",
+      accentColor: "#3BA755",
+      tasks: ["ICE0011830"],
+      source: { date:"2026-04-20", note: "n_ecpro_apr20" },
+      body: `Benefits quantification framework finalized. $3.38M in quantified benefits at end of March (AI vs non-AI breakdown). Ready for value realization reporting.
+
+Context: EC Pro is in maintenance mode — no further enhancements (confirmed Mar 5). Workplace Services is the next major EC feature, currently in holding pattern.
+
+Action for ICE0011830: Update task with $3.38M figure. Confirm Impact Portal is the reporting vehicle. Establish quarterly QBR cadence to report to AT&T leadership.`,
+    },
+    {
+      id: "b_arb",
+      title: "🏛️ ARB Pattern: 10 Sessions — Creator Approved, GuardRails Enforcement Layer Confirmed",
+      priority: "Pattern", priorityColor: "#81B5A1",
+      accentColor: "#81B5A1",
+      tasks: ["ICE0011359","ICE0011528"],
+      source: { date:"2026-04-22", note: "n_arb_apr22" },
+      body: `10 ARB sessions documented Feb 23 – Apr 22.
+
+Key moments:
+- Apr 8: NowAssist for Creator approved (dev-only). AppOmni CSO plugin approved. Formal Now Assist governance gate.
+- Apr 20: 1 rejection (SCART retirement) — establishes precedent for architectural standards.
+- Mar 11: Discussion — ARB allows last-minute submissions without steward review. Governance gap.
+- Feb 27 Guardrails session: ARB is the enforcement mechanism. GuardRails doc should be structured as ARB-ready policy.
+
+Submission rule: finalize ARB agenda 4pm ET day before ARB meeting.`,
+    },
+    {
+      id: "b_roadmap",
+      title: "🔧 Now Assist Proposed Roadmap — Marcus Anthony Intel (Mar 5)",
+      priority: "Intel", priorityColor: "#E07B54",
+      accentColor: "#E07B54",
+      tasks: ["ICE0011565","ICE0011559","ICE0011114"],
+      source: { date:"2026-03-05", note: "n_roadmap" },
+      body: `Marcus Anthony confirmed: leadership "doesn't fully know what it's doing with AI." "Fast pass" approach for Creator planned. CSO frustrated product "not fully baked." Readiness evaluation plugin deployed to production Mar 1.
+
+Knowledge readiness gap: Similar KB articles across different KBs (teams in silos). User criteria configured differently per team. No standardized dedup process. No documented tenant enablement process.
+
+Intake process: Mark Figueroa building catalog as front door for Now Assist requests — feeds into XML demand intake. Team determining whether to guide tenants through CSO process or have them self-navigate.`,
+    },
+  ],
+};
+
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script>
+const { useState, useMemo, useCallback } = React;
+const h = React.createElement;
+const D = window.ICE_DATA;
+const SN = 'https://attsncoteam.service-now.com';
+
+// ── Helpers ──────────────────────────────────────────────────
+const stateInfo = (s) => D.states[s] || D.states["1"];
+const priInfo   = (p) => D.priorities[p] || D.priorities["4"];
+const typeInfo  = (t) => D.types[t] || D.types["task"];
+const noteInfo  = (ref) => D.notes[ref];
+const notionURL = (id) => `https://www.notion.so/${id.replace(/-/g,'')}`;
+const snURL     = (num) => `${SN}/u_impact_task_list.do?sysparm_query=number=${num}`;
+
+function Badge({ label, color, bg, style }) {
+  return h('span', { className:'badge', style:{ color, background: bg || '#F3F3F3', ...style } }, label);
+}
+
+// ── NoteItem ─────────────────────────────────────────────────
+function NoteItem({ item }) {
+  const note = noteInfo(item.ref);
+  if (!note) return null;
+  return h('div', { className:`note-item${item.highlight ? ' highlight' : ''}` },
+    h('div', { className:'note-hdr' },
+      h('span', { className:`note-dot${item.highlight ? ' red' : ''}` }),
+      h('span', { className:`note-dtitle${item.highlight ? ' red' : ''}` }, note.title),
+      h('span', { className:'note-date' }, note.date),
+      h('a', { className:'note-link', href:notionURL(note.url), target:'_blank' }, 'Open ↗'),
+    ),
+    h('div', { className:'note-summary' }, item.summary),
+  );
+}
+
+// ── WorkNote ─────────────────────────────────────────────────
+function WorkNote({ task }) {
+  const [text, setText]   = useState(task.workNote);
+  const [saved, setSaved] = useState(false);
+
+  const save = () => {
+    navigator.clipboard.writeText(text).catch(() => {});
+    window.open(snURL(task.number), '_blank');
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+  };
+
+  return h('div', { className:'note-editor' },
+    h('textarea', {
+      className:'note-textarea', value:text,
+      onChange: e => setText(e.target.value),
+    }),
+    h('div', { className:'note-footer' },
+      h('span', { className:'note-updated' }, `Last SN update: ${task.updated}`),
+      h('div', { className:'btn-row' },
+        h('button', { className:'btn btn-ghost btn-sm', onClick:() => window.open(snURL(task.number),'_blank') }, 'Open in SN'),
+        h('button', {
+          className:`btn btn-sm ${saved ? 'btn-success' : 'btn-primary'}`,
+          onClick:save,
+        }, saved ? '✓ Copied & opened' : 'Save to SN'),
+      ),
+    ),
+  );
+}
+
+// ── TaskCard ─────────────────────────────────────────────────
+function TaskCard({ task }) {
+  const [open,    setOpen]    = useState(false);
+  const [activeTab, setTab]   = useState('notes');
+  const state = stateInfo(task.state);
+  const pri   = priInfo(task.priority);
+  const type  = typeInfo(task.type);
+  const hasNotes = task.notes && task.notes.length > 0;
+
+  // Pick left-bar color: by state (WIP=teal, Open=info, Hold=warn) else priority
+  const accentColor =
+    task.state === '2'  ? '#044355' :
+    task.state === '1'  ? '#0176D3' :
+    task.state === '11' ? '#DD7A01' :
+    task.state === '3'  ? '#3BA755' :
+    pri.color;
+
+  return h('div', { className:`task-card${open ? ' open' : ''}` },
+    // ── header row ──
+    h('div', { className:'card-header', onClick:() => setOpen(!open) },
+      h('div', { className:'card-accent', style:{ background:accentColor } }),
+      h('div', { className:'card-inner' },
+        h('div', { className:'card-left' },
+          h('span', { className:'card-num' }, task.number),
+          h('span', { className:'card-title' }, task.title),
+        ),
+        h('div', { className:'card-right' },
+          h(Badge, { label:state.label, color:state.color, bg:state.bg }),
+          h(Badge, { label:pri.label,   color:pri.color,   bg:pri.bg   }),
+          h(Badge, { label:type.label,  color:type.color,  bg:'#F0F4F8' }),
+          hasNotes && h(Badge, { label:`${task.notes.length} Notes`, color:'#E07B54', bg:'#FEF0EA' }),
+          task.fdbk && h(Badge, { label:task.fdbk, color:'#5A31F4', bg:'#F0F0FF' }),
+          task.urgent && h(Badge, { label:'Urgent', color:'#C23934', bg:'#FDE9E9' }),
+          h('span', { className:'chevron' }, '▾'),
+        ),
+      ),
+    ),
+    // ── body ──
+    h('div', { className:'card-body' },
+      hasNotes
+        ? h('div', null,
+            h('div', { className:'inner-tabs' },
+              h('button', { className:`itab${activeTab==='notes'?' active':''}`, onClick:()=>setTab('notes') }, 'Notion Intel'),
+              h('button', { className:`itab${activeTab==='note' ?' active':''}`, onClick:()=>setTab('note')  }, 'Work Note'),
+            ),
+            activeTab === 'notes'
+              ? h('div', { className:'ipanel active' },
+                  h('div', { className:'notes-list' },
+                    task.notes.map((item, i) => h(NoteItem, { key:i, item })),
+                  ),
+                )
+              : h('div', { className:'ipanel active' }, h(WorkNote, { task })),
+          )
+        : h('div', { className:'compact-body' },
+            task.workNote
+              ? h('p', null, task.workNote)
+              : h('p', null, 'No additional context captured.'),
+          ),
+      h('div', { className:'qa-row' },
+        h('button', { className:'btn btn-ghost btn-sm', onClick:() => window.open(snURL(task.number),'_blank') }, 'Open in SN'),
+        task.dmnd && h('button', { className:'btn btn-ghost btn-sm' }, task.dmnd),
+      ),
+    ),
+  );
+}
+
+// ── IntelCard ────────────────────────────────────────────────
+function IntelCard({ b }) {
+  const [open, setOpen] = useState(false);
+  const note = noteInfo(b.source.note);
+
+  return h('div', { className:`intel-card${open ? ' open' : ''}`, style:{ borderLeft:`4px solid ${b.accentColor}` } },
+    h('div', { className:'intel-header', onClick:() => setOpen(!open) },
+      h('div', { className:'intel-title' }, b.title),
+      h('div', { className:'intel-meta' },
+        h(Badge, { label:b.priority, color:b.priorityColor, bg:b.priorityColor+'22' }),
+        h(Badge, { label:b.tasks.join(' · '), color:'#044355', bg:'#F3F3F3' }),
+        h('span', { className:'chevron', style:{color:'#546E7A'} }, open ? '▴' : '▾'),
+      ),
+    ),
+    h('div', { className:'intel-body' },
+      h('div', { className:'intel-src' },
+        h('span', null, `NOTION · ${b.source.date}`),
+        note && h('a', { href:notionURL(note.url), target:'_blank' }, `${note.title} ↗`),
+      ),
+      h('pre', { className:'intel-text' }, b.body),
+      h('div', { className:'intel-tasks' },
+        b.tasks.map(t => h('button', { key:t, className:'btn btn-ghost btn-sm', onClick:()=>window.open(snURL(t),'_blank') }, `Update ${t}`)),
+      ),
+    ),
+  );
+}
+
+// ── ENH Tab ──────────────────────────────────────────────────
+function EnhTab() {
+  const enhs = D.tasks.filter(t => t.type === 'ENH Request');
+  return h('div', null,
+    h('p', { className:'section-sub' }, `${enhs.length} active enhancement requests.`),
+    enhs.map(task => {
+      const state = stateInfo(task.state);
+      const pri   = priInfo(task.priority);
+      return h('div', { key:task.number, className:'task-card', style:{marginBottom:10} },
+        h('div', { className:'card-header', style:{cursor:'default'} },
+          h('div', { className:'card-accent', style:{ background:'#5A31F4' } }),
+          h('div', { className:'card-inner' },
+            h('div', { className:'card-left' },
+              h('span', { className:'card-num' }, task.number),
+              h('span', { className:'card-title' }, task.title),
+            ),
+            h('div', { className:'card-right' },
+              h(Badge, { label:state.label, color:state.color, bg:state.bg }),
+              h(Badge, { label:pri.label, color:pri.color, bg:pri.bg }),
+              h(Badge, { label:'ENH', color:'#5A31F4', bg:'#F0F0FF' }),
+              task.fdbk && h(Badge, { label:task.fdbk, color:'#5A31F4', bg:'#ECE9FF' }),
+            ),
+          ),
+        ),
+        h('div', { style:{ padding:'12px 16px' } },
+          h('table', { className:'fdbk-table' },
+            h('tbody', null,
+              task.fdbk && h('tr', null, h('td',null,'FDBK'), h('td',null,task.fdbk)),
+              task.dmnd && h('tr', null, h('td',null,'DMND'), h('td',null,task.dmnd)),
+              h('tr', null, h('td',null,'State'), h('td', { style:{color:state.color} }, state.label)),
+              h('tr', null, h('td',null,'Last updated'), h('td',null, task.updated)),
+              task.notes.length > 0 && h('tr', null, h('td',null,'Latest Notion context'), h('td',null, task.notes[0].summary)),
+            ),
+          ),
+        ),
+        h('div', { className:'qa-row' },
+          h('button', { className:'btn btn-ghost btn-sm', onClick:()=>window.open(snURL(task.number),'_blank') }, 'Open in SN'),
+        ),
+      );
+    }),
+  );
+}
+
+// ── Summary stats ────────────────────────────────────────────
+function computeStats(tasks) {
+  const counts = { wip:0, ns:0, hold:0, open:0, critical:0, notes:0 };
+  tasks.forEach(t => {
+    if (t.state === '2')  counts.wip++;
+    if (t.state === '-5') counts.ns++;
+    if (t.state === '11') counts.hold++;
+    if (t.state === '1')  counts.open++;
+    if (t.priority === '1' || t.priority === '2') counts.critical++;
+    counts.notes += (t.notes || []).length;
+  });
+  return counts;
+}
+
+// ── Main App ─────────────────────────────────────────────────
+function App() {
+  const [activeTab, setActiveTab] = useState('tasks');
+  const [search, setSearch]       = useState('');
+  const [stateFilter, setStateFl] = useState('all');
+  const [notionFilter, setNFl]    = useState(false);
+  const [typeFilter, setTypeFl]   = useState(null);
+
+  const stats = useMemo(() => computeStats(D.tasks), []);
+
+  const filtered = useMemo(() => {
+    return D.tasks.filter(t => {
+      const stateMap = { wip:'2', ns:'-5', hold:'11', open:'1', series:'1' };
+      if (stateFilter !== 'all' && t.state !== stateMap[stateFilter]) return false;
+      if (notionFilter && (!t.notes || t.notes.length === 0)) return false;
+      if (typeFilter && t.type !== typeFilter) return false;
+      if (search) {
+        const hay = (t.number + t.title + t.type + (t.workNote||'')).toLowerCase();
+        if (!hay.includes(search.toLowerCase())) return false;
+      }
+      return true;
+    });
+  }, [search, stateFilter, notionFilter, typeFilter]);
+
+  const wipTasks = useMemo(() => D.tasks.filter(t => t.state === '2'), []);
+
+  // ── Render ─────────────────────────────────────────────────
+  return h('div', { id:'app' },
+
+    // Header
+    h('header', { className:'header' },
+      h('div', { className:'header-brand' },
+        h('div', { className:'header-logo' }, 'ICE'),
+        h('div', null,
+          h('div', { className:'header-title' }, 'ICE Intelligence Center'),
+          h('div', { className:'header-sub' }, 'Marco De Leonardis · AT&T Impact Squad · attsncoteam'),
+        ),
+      ),
+      h('div', { className:'header-pills' },
+        h('div', { className:'pill' }, h('span', { className:`pill-dot ${true ? 'pulse' : ''}` }), 'attsncoteam · Live'),
+        h('div', { className:'pill' }, '238 Notion Notes'),
+        h('div', { className:'pill' }, D.meta.pulled),
+      ),
+    ),
+
+    // Summary strip
+    h('div', { className:'summary-strip' },
+      [
+        { num: D.tasks.length, lbl:'Active Tasks',    color:'var(--green)' },
+        { num: stats.wip,      lbl:'WIP',              color:'var(--sage)' },
+        { num: stats.ns,       lbl:'Not Started',      color:'rgba(255,255,255,.7)' },
+        { num: stats.hold,     lbl:'On Hold',          color:'var(--warn)' },
+        { num: stats.open,     lbl:'Series / Open',    color:'var(--info)' },
+        { num: stats.notes,    lbl:'Notion Refs',      color:'var(--notion)' },
+        { num: stats.critical, lbl:'P1–P2 Critical',   color:' var(--error)' },
+      ].map(s => h('div', { key:s.lbl, className:'sum-card' },
+        h('div', { className:'sum-num', style:{ color:s.color } }, s.num),
+        h('div', { className:'sum-lbl' }, s.lbl),
+      )),
+    ),
+
+    // Tabs
+    h('div', { className:'tabs', role:'tablist' },
+      [
+        { id:'tasks',        label:'All Tasks',            count: D.tasks.length },
+        { id:'wip',          label:'WIP',                  count: wipTasks.length },
+        { id:'intelligence', label:'Intelligence Briefings', count: D.briefings.length },
+        { id:'enh',          label:'ENH / BT1',            count: D.tasks.filter(t=>t.type==='ENH Request').length },
+      ].map(tab =>
+        h('button', {
+          key:tab.id,
+          className:`tab-btn${activeTab===tab.id?' active':''}`,
+          onClick:() => setActiveTab(tab.id),
+        },
+          tab.label,
+          h('span', { className:'tab-badge' }, tab.count),
+        ),
+      ),
+    ),
+
+    // Main content
+    h('main', null,
+
+      // ── All Tasks ────────────────────────────────────────────
+      activeTab === 'tasks' && h('div', null,
+        h('div', { className:'filter-bar' },
+          h('input', {
+            className:'search-input', type:'text', placeholder:'Search tasks, numbers, keywords…',
+            value:search, onChange:e=>setSearch(e.target.value),
+          }),
+          // State filters
+          ['all','wip','ns','hold','open'].map(s =>
+            h('button', {
+              key:s,
+              className:`fbtn${stateFilter===s?' active':''}`,
+              onClick:() => { setStateFl(s); setTypeFl(null); },
+            },
+              s === 'all' ? 'All' : s === 'ns' ? 'Not Started' : s === 'hold' ? 'On Hold' : s.toUpperCase(),
+            ),
+          ),
+          h('button', {
+            className:`fbtn${typeFilter==='ENH Request'?' active':''}`,
+            onClick:() => setTypeFl(typeFilter==='ENH Request' ? null : 'ENH Request'),
+          }, 'ENH'),
+          h('button', {
+            className:`fbtn${notionFilter?' active':''}`,
+            onClick:() => setNFl(!notionFilter),
+          }, '📎 Has Notes'),
+        ),
+        h('div', { className:'section-sub' }, `Showing ${filtered.length} of ${D.tasks.length} tasks`),
+        filtered.map(task => h(TaskCard, { key:task.number, task })),
+        filtered.length === 0 && h('p', { style:{color:'var(--muted)',padding:'20px 0'} }, 'No tasks match current filters.'),
+      ),
+
+      // ── WIP ──────────────────────────────────────────────────
+      activeTab === 'wip' && h('div', null,
+        h('p', { className:'section-sub' }, `${wipTasks.length} tasks currently Work in Progress.`),
+        wipTasks.map(task => h(TaskCard, { key:task.number, task })),
+      ),
+
+      // ── Intelligence ─────────────────────────────────────────
+      activeTab === 'intelligence' && h('div', null,
+        h('p', { className:'section-sub' }, `${D.briefings.length} high-signal intelligence briefings synthesized from the 238-note Notion scan. Each maps to active ICE tasks.`),
+        D.briefings.map(b => h(IntelCard, { key:b.id, b })),
+      ),
+
+      // ── ENH ──────────────────────────────────────────────────
+      activeTab === 'enh' && h(EnhTab, null),
+
+    ), // /main
+  ); // /app
+}
+
+// ── Mount ────────────────────────────────────────────────────
+ReactDOM.createRoot(document.getElementById('app')).render(h(App));
+</script>
+</body>
+</html>
